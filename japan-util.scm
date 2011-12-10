@@ -146,14 +146,25 @@
   #f)
 (define (japan-util-ascii-clipboard pc)
   #f)
+
 (define (japan-util-halfwidth-katakana-selection pc)
-  #f)
+  (japan-util-convert pc 'selection
+    (lambda (str)
+      ;; XXX: exclude ascii symbols in ja-rk-rule-basic
+      (japan-util-kana-convert str ja-type-halfkana))))
+
 (define (japan-util-halfwidth-katakana-clipboard pc)
-  #f)
+  (japan-util-convert pc 'clipboard
+    (lambda (str)
+      ;; XXX: exclude ascii symbols in ja-rk-rule-basic
+      (japan-util-kana-convert str ja-type-halfkana))))
 
 (define (japan-util-kana-convert str idx)
   (string-list-concat
     (map
       (lambda (e)
-        (list-ref (ja-find-kana-list-from-rule ja-rk-rule e) idx))
+        (let ((ch (list-ref (ja-find-kana-list-from-rule ja-rk-rule e) idx)))
+          (if (string=? ch "")
+            e ; avoid to convert to "" (ex. "zk" in ja-rk-rule-basic)
+            ch)))
       (string-to-list str))))
