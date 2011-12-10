@@ -4,6 +4,15 @@
 (require-custom "japan-util-custom.scm")
 (require "japanese.scm")
 
+;; reverse rule of ja-wide-rule. (excludes "бя" to "yen" rule)
+(define japan-util-wide-to-ascii-rule
+  (filter-map
+    (lambda (x)
+      (let ((ascii (car x)))
+        (and (not (string=? ascii "yen"))
+             (list (cadr x) ascii))))
+    ja-wide-rule))
+
 (define japan-util-context-rec-spec context-rec-spec)
 (define-record 'japan-util-context japan-util-context-rec-spec)
 (define japan-util-context-new-internal japan-util-context-new)
@@ -175,18 +184,9 @@
       (string-to-list str))))
 
 (define (japan-util-ascii-convert str)
-  ;; find rec by second element and return first element
-  ;; (cf. ja-find-rec in japanese.scm)
-  (define (ja-find-rec2 c rule)
-    (if (null? rule)
-      #f
-      (let ((r (car rule)))
-        (if (string=? c (cadr r))
-          (car r)
-          (ja-find-rec2 c (cdr rule))))))
   (define (ja-ascii c) ; opposite of ja-wide in japanese.scm
-    (or (ja-find-rec2 c ja-wide-rule)
-        c))
+    (cond ((assoc c japan-util-wide-to-ascii-rule) => cadr)
+          (else c)))
   ;; convert wide alphabets in string list to ascii alphabets.
   ;; (cf. ja-string-list-to-wide-alphabet in japanese.scm)
   (define (ja-string-list-to-ascii res-list char-list)
