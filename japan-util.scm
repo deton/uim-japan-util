@@ -13,6 +13,81 @@
              (list (cadr x) ascii))))
     ja-wide-rule))
 
+;; convert wide alphabet to ascii
+;; (opposite of ja-wide in japanese.scm)
+(define (japan-util-wide-to-ascii c)
+  (cond ((assoc c japan-util-wide-to-ascii-rule) => cadr)
+        (else c)))
+
+(define japan-util-halfkana-to-fullkana-rule
+  '(("｡" "。")
+    ("｢" "「")
+    ("｣" "」")
+    ("､" "、")
+    ("･" "・")
+    ("ｦ" "ヲ")
+    ("ｧ" "ァ")
+    ("ｨ" "ィ")
+    ("ｩ" "ゥ")
+    ("ｪ" "ェ")
+    ("ｫ" "ォ")
+    ("ｬ" "ャ")
+    ("ｭ" "ュ")
+    ("ｮ" "ョ")
+    ("ｯ" "ッ")
+    ("ｰ" "ー")
+    ("ｱ" "ア")
+    ("ｲ" "イ")
+    ("ｳ" "ウ")
+    ("ｴ" "エ")
+    ("ｵ" "オ")
+    ("ｶ" "カ")
+    ("ｷ" "キ")
+    ("ｸ" "ク")
+    ("ｹ" "ケ")
+    ("ｺ" "コ")
+    ("ｻ" "サ")
+    ("ｼ" "シ")
+    ("ｽ" "ス")
+    ("ｾ" "セ")
+    ("ｿ" "ソ")
+    ("ﾀ" "タ")
+    ("ﾁ" "チ")
+    ("ﾂ" "ツ")
+    ("ﾃ" "テ")
+    ("ﾄ" "ト")
+    ("ﾅ" "ナ")
+    ("ﾆ" "ニ")
+    ("ﾇ" "ヌ")
+    ("ﾈ" "ネ")
+    ("ﾉ" "ノ")
+    ("ﾊ" "ハ")
+    ("ﾋ" "ヒ")
+    ("ﾌ" "フ")
+    ("ﾍ" "ヘ")
+    ("ﾎ" "ホ")
+    ("ﾏ" "マ")
+    ("ﾐ" "ミ")
+    ("ﾑ" "ム")
+    ("ﾒ" "メ")
+    ("ﾓ" "モ")
+    ("ﾔ" "ヤ")
+    ("ﾕ" "ユ")
+    ("ﾖ" "ヨ")
+    ("ﾗ" "ラ")
+    ("ﾘ" "リ")
+    ("ﾙ" "ル")
+    ("ﾚ" "レ")
+    ("ﾛ" "ロ")
+    ("ﾜ" "ワ")
+    ("ﾝ" "ン")
+    ("ﾞ" "゛")
+    ("ﾟ" "゜")))
+
+(define (japan-util-halfkana-to-fullkana c)
+  (cond ((assoc c japan-util-halfkana-to-fullkana-rule) => cadr)
+        (else c)))
+
 (define japan-util-context-rec-spec context-rec-spec)
 (define-record 'japan-util-context japan-util-context-rec-spec)
 (define japan-util-context-new-internal japan-util-context-new)
@@ -139,28 +214,6 @@
     (lambda (str)
       (japan-util-kana-convert str ja-type-katakana))))
 
-(define (japan-util-zenkaku-selection pc)
-  (japan-util-convert pc 'selection
-    (lambda (str)
-      ;; TODO: Hankaku Katakana to Zenkaku Katakana
-      (ja-string-list-to-wide-alphabet (string-to-list str)))))
-
-(define (japan-util-zenkaku-clipboard pc)
-  (japan-util-convert pc 'clipboard
-    (lambda (str)
-      ;; TODO: Hankaku Katakana to Zenkaku Katakana
-      (ja-string-list-to-wide-alphabet (string-to-list str)))))
-
-(define (japan-util-ascii-selection pc)
-  (japan-util-convert pc 'selection
-    (lambda (str)
-      (japan-util-ascii-convert str))))
-
-(define (japan-util-ascii-clipboard pc)
-  (japan-util-convert pc 'clipboard
-    (lambda (str)
-      (japan-util-ascii-convert str))))
-
 (define (japan-util-halfwidth-katakana-selection pc)
   (japan-util-convert pc 'selection
     (lambda (str)
@@ -183,17 +236,43 @@
             ch)))
       (string-to-list str))))
 
+(define (japan-util-zenkaku-selection pc)
+  (japan-util-convert pc 'selection
+    (lambda (str)
+      (ja-string-list-to-wide-alphabet
+        (japan-util-halfkana-to-fullkana-convert str)))))
+
+(define (japan-util-zenkaku-clipboard pc)
+  (japan-util-convert pc 'clipboard
+    (lambda (str)
+      (ja-string-list-to-wide-alphabet
+        (japan-util-halfkana-to-fullkana-convert str)))))
+
+(define (japan-util-halfkana-to-fullkana-convert str)
+  ;; TODO: support Dakuten and Handakuten
+  (map
+    (lambda (e)
+      (japan-util-halfkana-to-fullkana e))
+    (string-to-list str)))
+
+(define (japan-util-ascii-selection pc)
+  (japan-util-convert pc 'selection
+    (lambda (str)
+      (japan-util-ascii-convert str))))
+
+(define (japan-util-ascii-clipboard pc)
+  (japan-util-convert pc 'clipboard
+    (lambda (str)
+      (japan-util-ascii-convert str))))
+
 (define (japan-util-ascii-convert str)
-  (define (ja-ascii c) ; opposite of ja-wide in japanese.scm
-    (cond ((assoc c japan-util-wide-to-ascii-rule) => cadr)
-          (else c)))
   ;; convert wide alphabets in string list to ascii alphabets.
   ;; (cf. ja-string-list-to-wide-alphabet in japanese.scm)
   (define (ja-string-list-to-ascii res-list char-list)
     (if (null? char-list)
       res-list
       (ja-string-list-to-ascii
-        (cons (ja-ascii (car char-list)) res-list)
+        (cons (japan-util-wide-to-ascii (car char-list)) res-list)
         (cdr char-list))))
   (apply string-append
     (ja-string-list-to-ascii '() (string-to-list str))))
