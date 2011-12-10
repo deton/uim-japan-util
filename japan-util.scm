@@ -143,9 +143,14 @@
       (ja-string-list-to-wide-alphabet (string-to-list str)))))
 
 (define (japan-util-ascii-selection pc)
-  #f)
+  (japan-util-convert pc 'selection
+    (lambda (str)
+      (japan-util-ascii-convert str))))
+
 (define (japan-util-ascii-clipboard pc)
-  #f)
+  (japan-util-convert pc 'clipboard
+    (lambda (str)
+      (japan-util-ascii-convert str))))
 
 (define (japan-util-halfwidth-katakana-selection pc)
   (japan-util-convert pc 'selection
@@ -168,3 +173,27 @@
             e ; avoid to convert to "" (ex. "zk" in ja-rk-rule-basic)
             ch)))
       (string-to-list str))))
+
+(define (japan-util-ascii-convert str)
+  ;; find rec by second element and return first element
+  ;; (cf. ja-find-rec in japanese.scm)
+  (define (ja-find-rec2 c rule)
+    (if (null? rule)
+      #f
+      (let ((r (car rule)))
+        (if (string=? c (cadr r))
+          (car r)
+          (ja-find-rec2 c (cdr rule))))))
+  (define (ja-ascii c) ; opposite of ja-wide in japanese.scm
+    (or (ja-find-rec2 c ja-wide-rule)
+        c))
+  ;; convert wide alphabets in string list to ascii alphabets.
+  ;; (cf. ja-string-list-to-wide-alphabet in japanese.scm)
+  (define (ja-string-list-to-ascii res-list char-list)
+    (if (null? char-list)
+      res-list
+      (ja-string-list-to-ascii
+        (cons (ja-ascii (car char-list)) res-list)
+        (cdr char-list))))
+  (apply string-append
+    (ja-string-list-to-ascii '() (string-to-list str))))
