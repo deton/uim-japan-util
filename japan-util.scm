@@ -131,9 +131,17 @@
       (japan-util-kana-convert str ja-type-katakana))))
 
 (define (japan-util-zenkaku-selection pc)
-  #f)
+  (japan-util-convert pc 'selection
+    (lambda (str)
+      ;; TODO: Hankaku Katakana to Zenkaku Katakana
+      (ja-string-list-to-wide-alphabet (string-to-list str)))))
+
 (define (japan-util-zenkaku-clipboard pc)
-  #f)
+  (japan-util-convert pc 'clipboard
+    (lambda (str)
+      ;; TODO: Hankaku Katakana to Zenkaku Katakana
+      (ja-string-list-to-wide-alphabet (string-to-list str)))))
+
 (define (japan-util-ascii-selection pc)
   #f)
 (define (japan-util-ascii-clipboard pc)
