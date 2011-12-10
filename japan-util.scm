@@ -1,6 +1,6 @@
 ;;; Hiragana-Katakana, Zenkaku-Hankaku conversion on selection or clipboard.
 
-(require-extension (srfi 1 2))
+(require-extension (srfi 1 2 8))
 (require-custom "japan-util-custom.scm")
 (require "japanese.scm")
 
@@ -323,7 +323,7 @@
 
 (define (japan-util-halfkana-to-fullkana-convert str)
   ;; join all dakuten not only for halfkana
-  (japan-util-join-dakuten '()
+  (japan-util-join-dakuten
     (map
       (lambda (e)
         (japan-util-halfkana-to-fullkana e))
@@ -331,26 +331,32 @@
 
 ;; revise string list contains Dakuten "¡«" or Han-Dakuten "¡¬"
 ;; (("¡«") ("¥¦")) -> ("¥ô")
-(define (japan-util-join-dakuten res-lst lst)
-  (if (null? lst)
-    (reverse res-lst)
-    (let*
-      ((c (car lst))
-       (next-c (and (pair? (cdr lst)) (cadr lst)))
-       (joined-c
-        (cond
-          ((and (string=? c "¡«")
-                next-c
-                (assoc next-c japan-util-dakuten-chars-alist))
-            => cadr)
-          ((and (string=? c "¡¬")
-                next-c
-                (assoc next-c japan-util-handakuten-chars-alist))
-            => cadr)
-          (else #f))))
-      (if joined-c
-        (japan-util-join-dakuten (cons joined-c res-lst) (cddr lst))
-        (japan-util-join-dakuten (cons c res-lst) (cdr lst))))))
+(define (japan-util-join-dakuten lst)
+  (receive
+    (head tail)
+    (break
+      (lambda (x)
+        (or (string=? x "¡«") (string=? x "¡¬")))
+      lst)
+    (if (null? tail)
+      head
+      (let*
+        ((c (car tail))
+         (next-c (and (pair? (cdr tail)) (cadr tail)))
+         (joined-c
+          (cond
+            ((and (string=? c "¡«")
+                  next-c
+                  (assoc next-c japan-util-dakuten-chars-alist))
+              => cadr)
+            ((and (string=? c "¡¬")
+                  next-c
+                  (assoc next-c japan-util-handakuten-chars-alist))
+              => cadr)
+            (else #f))))
+        (if joined-c
+          (append head (list joined-c) (japan-util-join-dakuten (cddr tail)))
+          (append head (list c) (japan-util-join-dakuten (cdr tail))))))))
 
 (define (japan-util-ascii-selection pc)
   (japan-util-convert pc 'selection
