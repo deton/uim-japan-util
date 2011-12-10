@@ -349,12 +349,12 @@
           (append head (list c) (japan-util-join-dakuten (cdr tail))))))))
 
 (define (japan-util-ascii-selection pc)
-  (japan-util-convert pc 'selection japan-util-string-list-to-ascii))
+  (japan-util-convert pc 'selection japan-util-ascii-convert))
 
 (define (japan-util-ascii-clipboard pc)
-  (japan-util-convert pc 'clipboard japan-util-string-list-to-ascii))
+  (japan-util-convert pc 'clipboard japan-util-ascii-convert))
 
 ;; convert wide alphabets in string list to ascii alphabets.
 ;; (cf. ja-string-list-to-wide-alphabet in japanese.scm)
-(define (japan-util-string-list-to-ascii str-list)
+(define (japan-util-ascii-convert str-list)
   (map japan-util-wide-to-ascii str-list))
