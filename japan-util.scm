@@ -5,12 +5,12 @@
 (require "japanese.scm")
 (require "key.scm")
 
-;; reverse rule of ja-wide-rule. (excludes "бя" to "yen" rule)
+;; reverse rule of ja-wide-rule. (excludes rule ("~" "б┴"))
 (define japan-util-wide-to-ascii-rule
   (filter-map
     (lambda (x)
       (let ((ascii (car x)))
-        (and (not (string=? ascii "yen"))
+        (and (not (string=? ascii "~"))
              (list (cadr x) ascii))))
     ja-wide-rule))
 
