@@ -371,11 +371,10 @@
 (define (japan-util-ascii-convert str)
   ;; convert wide alphabets in string list to ascii alphabets.
   ;; (cf. ja-string-list-to-wide-alphabet in japanese.scm)
-  (define (ja-string-list-to-ascii res-list char-list)
-    (if (null? char-list)
-      res-list
-      (ja-string-list-to-ascii
-        (cons (japan-util-wide-to-ascii (car char-list)) res-list)
-        (cdr char-list))))
-  (apply string-append
-    (ja-string-list-to-ascii '() (string-to-list str))))
+  (define (ja-string-list-to-ascii char-list)
+    (map
+      (lambda (x)
+        (japan-util-wide-to-ascii x))
+      char-list))
+  (string-list-concat
+    (ja-string-list-to-ascii (string-to-list str))))
