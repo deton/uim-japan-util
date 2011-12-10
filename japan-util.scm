@@ -93,6 +93,9 @@
  #f
  )
 
+(define (japan-util-show-help pc)
+  (im-activate-candidate-selector pc 5 5))
+
 (define (japan-util-acquire-text pc id)
   (and-let*
     ((ustr (im-acquire-text pc id 'beginning 0 'full))
@@ -100,23 +103,33 @@
     (and (pair? latter)
          (car latter))))
 
-(define (japan-util-show-help pc)
-  (im-activate-candidate-selector pc 5 5))
+(define (japan-util-convert pc id convert)
+  (let ((str (japan-util-acquire-text pc id)))
+    (if (string? str)
+      (let ((converted-str (convert str)))
+        (if (not (string=? converted-str str))
+          (im-commit pc converted-str))))))
 
 (define (japan-util-hiragana-selection pc)
-  #f)
+  (japan-util-convert pc 'selection
+    (lambda (str)
+      (japan-util-kana-convert str 0))))
+
 (define (japan-util-hiragana-clipboard pc)
-  #f)
+  (japan-util-convert pc 'clipboard
+    (lambda (str)
+      (japan-util-kana-convert str 0))))
 
 (define (japan-util-katakana-selection pc)
-  (let ((str (japan-util-acquire-text pc 'selection)))
-    (if (string? str)
-      (let ((katakana (japan-util-katakana-convert str)))
-        (if (not (string=? katakana str))
-          (im-commit pc katakana))))))
+  (japan-util-convert pc 'selection
+    (lambda (str)
+      (japan-util-kana-convert str 1))))
 
 (define (japan-util-katakana-clipboard pc)
-  #f)
+  (japan-util-convert pc 'clipboard
+    (lambda (str)
+      (japan-util-kana-convert str 1))))
+
 (define (japan-util-zenkaku-selection pc)
   #f)
 (define (japan-util-zenkaku-clipboard pc)
@@ -130,9 +143,9 @@
 (define (japan-util-halfwidth-katakana-clipboard pc)
   #f)
 
-(define (japan-util-katakana-convert str)
+(define (japan-util-kana-convert str idx)
   (string-list-concat
     (map
       (lambda (e)
-        (list-ref (ja-find-kana-list-from-rule ja-rk-rule e) 1))
+        (list-ref (ja-find-kana-list-from-rule ja-rk-rule e) idx))
       (string-to-list str))))
