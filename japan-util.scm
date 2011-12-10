@@ -120,10 +120,10 @@
         (japan-util-katakana-selection pc))
       ((japan-util-katakana-clipboard-key? key key-state)
         (japan-util-katakana-clipboard pc))
-      ((japan-util-zenkaku-selection-key? key key-state)
-        (japan-util-zenkaku-selection pc))
-      ((japan-util-zenkaku-clipboard-key? key key-state)
-        (japan-util-zenkaku-clipboard pc))
+      ((japan-util-wide-selection-key? key key-state)
+        (japan-util-wide-selection pc))
+      ((japan-util-wide-clipboard-key? key key-state)
+        (japan-util-wide-clipboard pc))
       ((japan-util-ascii-selection-key? key key-state)
         (japan-util-ascii-selection pc))
       ((japan-util-ascii-clipboard-key? key key-state)
@@ -142,7 +142,7 @@
   (case idx
     ((0) (list "->hiragana" "h" ""))
     ((1) (list "->katakana" "k" ""))
-    ((2) (list "->zenkaku" "z" ""))
+    ((2) (list "->wide" "w" ""))
     ((3) (list "->ascii" "a" ""))
     ((4) (list "->halfwidth-katakana" "x" ""))))
 
@@ -150,7 +150,7 @@
   (case idx
     ((0) (japan-util-hiragana-selection pc))
     ((1) (japan-util-katakana-selection pc))
-    ((2) (japan-util-zenkaku-selection pc))
+    ((2) (japan-util-wide-selection pc))
     ((3) (japan-util-ascii-selection pc))
     ((4) (japan-util-halfwidth-katakana-selection pc))))
 
@@ -236,13 +236,13 @@
             ch)))
       (string-to-list str))))
 
-(define (japan-util-zenkaku-selection pc)
+(define (japan-util-wide-selection pc)
   (japan-util-convert pc 'selection
     (lambda (str)
       (ja-string-list-to-wide-alphabet
         (japan-util-halfkana-to-fullkana-convert str)))))
 
-(define (japan-util-zenkaku-clipboard pc)
+(define (japan-util-wide-clipboard pc)
   (japan-util-convert pc 'clipboard
     (lambda (str)
       (ja-string-list-to-wide-alphabet

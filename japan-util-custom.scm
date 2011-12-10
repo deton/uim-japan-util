@@ -38,16 +38,16 @@
 	       (N_ "[japan-util] katakana clipboard")
 	       (N_ "long description will be here"))
 
-(define-custom 'japan-util-zenkaku-selection-key '("z")
+(define-custom 'japan-util-wide-selection-key '("w")
                '(japan-util)
 	       '(key)
-	       (N_ "[japan-util] zenkaku selection")
+	       (N_ "[japan-util] wide selection")
 	       (N_ "long description will be here"))
 
-(define-custom 'japan-util-zenkaku-clipboard-key '("<IgnoreCase><Shift>z")
+(define-custom 'japan-util-wide-clipboard-key '("<IgnoreCase><Shift>w")
                '(japan-util)
 	       '(key)
-	       (N_ "[japan-util] zenkaku clipboard")
+	       (N_ "[japan-util] wide clipboard")
 	       (N_ "long description will be here"))
 
 (define-custom 'japan-util-ascii-selection-key '("a")
