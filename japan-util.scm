@@ -322,6 +322,7 @@
         (japan-util-halfkana-to-fullkana-convert str)))))
 
 (define (japan-util-halfkana-to-fullkana-convert str)
+  ;; join all dakuten not only for halfkana
   (japan-util-join-dakuten '()
     (map
       (lambda (e)
