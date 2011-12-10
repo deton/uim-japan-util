@@ -88,6 +88,61 @@
   (cond ((assoc c japan-util-halfkana-to-fullkana-rule) => cadr)
         (else c)))
 
+(define japan-util-dakuten-chars-alist
+  '(("か" "が")
+    ("き" "ぎ")
+    ("く" "ぐ")
+    ("け" "げ")
+    ("こ" "ご")
+    ("さ" "ざ")
+    ("し" "じ")
+    ("す" "ず")
+    ("せ" "ぜ")
+    ("そ" "ぞ")
+    ("た" "だ")
+    ("ち" "ぢ")
+    ("つ" "づ")
+    ("て" "で")
+    ("と" "ど")
+    ("は" "ば")
+    ("ひ" "び")
+    ("ふ" "ぶ")
+    ("へ" "べ")
+    ("ほ" "ぼ")
+    ("カ" "ガ")
+    ("キ" "ギ")
+    ("ク" "グ")
+    ("ケ" "ゲ")
+    ("コ" "ゴ")
+    ("サ" "ザ")
+    ("シ" "ジ")
+    ("ス" "ズ")
+    ("セ" "ゼ")
+    ("ソ" "ゾ")
+    ("タ" "ダ")
+    ("チ" "ヂ")
+    ("ツ" "ヅ")
+    ("テ" "デ")
+    ("ト" "ド")
+    ("ハ" "バ")
+    ("ヒ" "ビ")
+    ("フ" "ブ")
+    ("ヘ" "ベ")
+    ("ホ" "ボ")
+    ("ウ" "ヴ")))
+
+(define japan-util-handakuten-chars-alist
+  '(("は" "ぱ")
+    ("ひ" "ぴ")
+    ("ふ" "ぷ")
+    ("へ" "ぺ")
+    ("ほ" "ぽ")
+    ("ハ" "パ")
+    ("ヒ" "ピ")
+    ("フ" "プ")
+    ("ヘ" "ペ")
+    ("ホ" "ポ")))
+
 (define japan-util-context-rec-spec context-rec-spec)
 (define-record 'japan-util-context japan-util-context-rec-spec)
 (define japan-util-context-new-internal japan-util-context-new)
@@ -267,11 +322,34 @@
         (japan-util-halfkana-to-fullkana-convert str)))))
 
 (define (japan-util-halfkana-to-fullkana-convert str)
-  ;; TODO: support Dakuten and Handakuten
-  (map
-    (lambda (e)
-      (japan-util-halfkana-to-fullkana e))
-    (string-to-list str)))
+  (japan-util-join-dakuten '()
+    (map
+      (lambda (e)
+        (japan-util-halfkana-to-fullkana e))
+      (string-to-list str))))
+
+;; revise string list contains Dakuten "゛" or Han-Dakuten "゜"
+;; (("゛") ("ウ")) -> ("ヴ")
+(define (japan-util-join-dakuten res-lst lst)
+  (if (null? lst)
+    (reverse res-lst)
+    (let*
+      ((c (car lst))
+       (next-c (and (pair? (cdr lst)) (cadr lst)))
+       (joined-c
+        (cond
+          ((and (string=? c "゛")
+                next-c
+                (assoc next-c japan-util-dakuten-chars-alist))
+            => cadr)
+          ((and (string=? c "゜")
+                next-c
+                (assoc next-c japan-util-handakuten-chars-alist))
+            => cadr)
+          (else #f))))
+      (if joined-c
+        (japan-util-join-dakuten (cons joined-c res-lst) (cddr lst))
+        (japan-util-join-dakuten (cons c res-lst) (cdr lst))))))
 
 (define (japan-util-ascii-selection pc)
   (japan-util-convert pc 'selection
