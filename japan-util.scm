@@ -304,14 +304,18 @@
         (japan-util-katakana-selection pc))
       ((japan-util-katakana-clipboard-key? key key-state)
         (japan-util-katakana-clipboard pc))
-      ((japan-util-wide-selection-key? key key-state)
-        (japan-util-wide-selection pc))
-      ((japan-util-wide-clipboard-key? key key-state)
-        (japan-util-wide-clipboard pc))
+      ((japan-util-ascii-fullkana-selection-key? key key-state)
+        (japan-util-ascii-fullkana-selection pc))
+      ((japan-util-ascii-fullkana-clipboard-key? key key-state)
+        (japan-util-ascii-fullkana-clipboard pc))
       ((japan-util-ascii-selection-key? key key-state)
         (japan-util-ascii-selection pc))
       ((japan-util-ascii-clipboard-key? key key-state)
         (japan-util-ascii-clipboard pc))
+      ((japan-util-wide-selection-key? key key-state)
+        (japan-util-wide-selection pc))
+      ((japan-util-wide-clipboard-key? key key-state)
+        (japan-util-wide-clipboard pc))
       ((japan-util-fullwidth-katakana-selection-key? key key-state)
         (japan-util-fullwidth-katakana-selection pc))
       ((japan-util-fullwidth-katakana-clipboard-key? key key-state)
@@ -341,23 +345,26 @@
             (ichar-upcase target-key)
             target-key)))))
   (case idx
-    ((0) (list "->hiragana" (get-label japan-util-hiragana-selection-key) ""))
-    ((1) (list "->katakana" (get-label japan-util-katakana-selection-key) ""))
-    ((2) (list "->wide" (get-label japan-util-wide-selection-key) ""))
+    ((0) (list "->katakana" (get-label japan-util-katakana-selection-key) ""))
+    ((1) (list "->hiragana" (get-label japan-util-hiragana-selection-key) ""))
+    ((2) (list "->ascii+fullwidth katakana"
+          (get-label japan-util-ascii-fullkana-selection-key) ""))
     ((3) (list "->ascii" (get-label japan-util-ascii-selection-key) ""))
-    ((4) (list "->fullwidth-katakana"
+    ((4) (list "->wide" (get-label japan-util-wide-selection-key) ""))
+    ((5) (list "->fullwidth katakana"
           (get-label japan-util-fullwidth-katakana-selection-key) ""))
-    ((5) (list "->halfwidth-katakana"
+    ((6) (list "->halfwidth katakana"
           (get-label japan-util-halfwidth-katakana-selection-key) ""))))
 
 (define (japan-util-set-candidate-index-handler pc idx)
   (case idx
-    ((0) (japan-util-hiragana-selection pc))
-    ((1) (japan-util-katakana-selection pc))
-    ((2) (japan-util-wide-selection pc))
+    ((0) (japan-util-katakana-selection pc))
+    ((1) (japan-util-hiragana-selection pc))
+    ((2) (japan-util-ascii-fullkana-selection pc))
     ((3) (japan-util-ascii-selection pc))
-    ((4) (japan-util-fullwidth-katakana-selection pc))
-    ((5) (japan-util-halfwidth-katakana-selection pc)))
+    ((4) (japan-util-wide-selection pc))
+    ((5) (japan-util-fullwidth-katakana-selection pc))
+    ((6) (japan-util-halfwidth-katakana-selection pc)))
   (im-deactivate-candidate-selector pc))
 
 (register-im
@@ -384,7 +391,7 @@
  )
 
 (define (japan-util-show-help pc)
-  (im-activate-candidate-selector pc 6 6)
+  (im-activate-candidate-selector pc 7 7)
   (im-select-candidate pc 0)) ; to select candidate by click
 
 (define (japan-util-acquire-text pc id)
@@ -401,16 +408,6 @@
         (if (not (string=? converted-str str))
           (im-commit pc converted-str))))))
 
-(define (japan-util-hiragana-selection pc)
-  (japan-util-convert pc 'selection
-    (lambda (str-list)
-      (map japan-util-katakana-to-hiragana str-list))))
-
-(define (japan-util-hiragana-clipboard pc)
-  (japan-util-convert pc 'clipboard
-    (lambda (str-list)
-      (map japan-util-katakana-to-hiragana str-list))))
-
 (define (japan-util-katakana-selection pc)
   (japan-util-convert pc 'selection
     (lambda (str-list)
@@ -420,6 +417,16 @@
   (japan-util-convert pc 'clipboard
     (lambda (str-list)
       (map japan-util-hiragana-to-katakana (ja-join-vu str-list)))))
+
+(define (japan-util-hiragana-selection pc)
+  (japan-util-convert pc 'selection
+    (lambda (str-list)
+      (map japan-util-katakana-to-hiragana str-list))))
+
+(define (japan-util-hiragana-clipboard pc)
+  (japan-util-convert pc 'clipboard
+    (lambda (str-list)
+      (map japan-util-katakana-to-hiragana str-list))))
 
 (define (japan-util-halfwidth-katakana-selection pc)
   (japan-util-convert pc 'selection
@@ -431,11 +438,34 @@
     (lambda (str-list)
       (map japan-util-fullkana-to-halfkana str-list))))
 
+(define (japan-util-ascii-fullkana-selection pc)
+  (japan-util-convert pc 'selection
+    (lambda (str-list)
+      (japan-util-ascii-convert
+        (japan-util-halfkana-to-fullkana-convert str-list)))))
+
+(define (japan-util-ascii-fullkana-clipboard pc)
+  (japan-util-convert pc 'clipboard
+    (lambda (str-list)
+      (japan-util-ascii-convert
+        (japan-util-halfkana-to-fullkana-convert str-list)))))
+
 (define (japan-util-fullwidth-katakana-selection pc)
   (japan-util-convert pc 'selection japan-util-halfkana-to-fullkana-convert))
 
 (define (japan-util-fullwidth-katakana-clipboard pc)
   (japan-util-convert pc 'clipboard japan-util-halfkana-to-fullkana-convert))
+
+(define (japan-util-ascii-selection pc)
+  (japan-util-convert pc 'selection japan-util-ascii-convert))
+
+(define (japan-util-ascii-clipboard pc)
+  (japan-util-convert pc 'clipboard japan-util-ascii-convert))
+
+;; convert wide alphabets in string list to ascii alphabets.
+;; (cf. ja-string-list-to-wide-alphabet in japanese.scm)
+(define (japan-util-ascii-convert str-list)
+  (map japan-util-wide-to-ascii str-list))
 
 (define (japan-util-wide-selection pc)
   (japan-util-convert pc 'selection
@@ -482,14 +512,3 @@
         (if joined-c
           (append head (list joined-c) (japan-util-join-dakuten (cddr tail)))
           (append head (list c) (japan-util-join-dakuten (cdr tail))))))))
-
-(define (japan-util-ascii-selection pc)
-  (japan-util-convert pc 'selection japan-util-ascii-convert))
-
-(define (japan-util-ascii-clipboard pc)
-  (japan-util-convert pc 'clipboard japan-util-ascii-convert))
-
-;; convert wide alphabets in string list to ascii alphabets.
-;; (cf. ja-string-list-to-wide-alphabet in japanese.scm)
-(define (japan-util-ascii-convert str-list)
-  (map japan-util-wide-to-ascii str-list))
