@@ -3,6 +3,7 @@
 (require-extension (srfi 1 2 8))
 (require-custom "japan-util-custom.scm")
 (require "japanese.scm")
+(require "key.scm")
 
 ;; reverse rule of ja-wide-rule. (excludes "бя" to "yen" rule)
 (define japan-util-wide-to-ascii-rule
@@ -326,13 +327,28 @@
   (im-commit-raw pc))
 
 (define (japan-util-get-candidate-handler pc idx accel-enum-hint)
+  (define (get-label custom-key)
+    (if (null? custom-key)
+      ""
+      ;; (problem if require "custom.scm" for key-str->gui-key-str)
+      (let* ((key-str (car custom-key)) ; only check first key
+             (parsed (parse-key-str key-str '() -1 0))
+             (translated (apply apply-translators (cdr parsed)))
+             (target-key (list-ref translated 1))
+             (target-state (list-ref translated 2)))
+        (charcode->string
+          (if (shift-key-mask target-state)
+            (ichar-upcase target-key)
+            target-key)))))
   (case idx
-    ((0) (list "->hiragana" "h" ""))
-    ((1) (list "->katakana" "k" ""))
-    ((2) (list "->wide" "w" ""))
-    ((3) (list "->ascii" "a" ""))
-    ((4) (list "->fullwidth-katakana" "z" ""))
-    ((5) (list "->halfwidth-katakana" "x" ""))))
+    ((0) (list "->hiragana" (get-label japan-util-hiragana-selection-key) ""))
+    ((1) (list "->katakana" (get-label japan-util-katakana-selection-key) ""))
+    ((2) (list "->wide" (get-label japan-util-wide-selection-key) ""))
+    ((3) (list "->ascii" (get-label japan-util-ascii-selection-key) ""))
+    ((4) (list "->fullwidth-katakana"
+          (get-label japan-util-fullwidth-katakana-selection-key) ""))
+    ((5) (list "->halfwidth-katakana"
+          (get-label japan-util-halfwidth-katakana-selection-key) ""))))
 
 (define (japan-util-set-candidate-index-handler pc idx)
   (case idx
@@ -341,7 +357,8 @@
     ((2) (japan-util-wide-selection pc))
     ((3) (japan-util-ascii-selection pc))
     ((4) (japan-util-fullwidth-katakana-selection pc))
-    ((5) (japan-util-halfwidth-katakana-selection pc))))
+    ((5) (japan-util-halfwidth-katakana-selection pc)))
+  (im-deactivate-candidate-selector pc))
 
 (register-im
  'japan-util
@@ -367,7 +384,8 @@
  )
 
 (define (japan-util-show-help pc)
-  (im-activate-candidate-selector pc 6 6))
+  (im-activate-candidate-selector pc 6 6)
+  (im-select-candidate pc 0)) ; to select candidate by click
 
 (define (japan-util-acquire-text pc id)
   (and-let*
