@@ -113,22 +113,22 @@
 (define (japan-util-hiragana-selection pc)
   (japan-util-convert pc 'selection
     (lambda (str)
-      (japan-util-kana-convert str 0))))
+      (japan-util-kana-convert str ja-type-hiragana))))
 
 (define (japan-util-hiragana-clipboard pc)
   (japan-util-convert pc 'clipboard
     (lambda (str)
-      (japan-util-kana-convert str 0))))
+      (japan-util-kana-convert str ja-type-hiragana))))
 
 (define (japan-util-katakana-selection pc)
   (japan-util-convert pc 'selection
     (lambda (str)
-      (japan-util-kana-convert str 1))))
+      (japan-util-kana-convert str ja-type-katakana))))
 
 (define (japan-util-katakana-clipboard pc)
   (japan-util-convert pc 'clipboard
     (lambda (str)
-      (japan-util-kana-convert str 1))))
+      (japan-util-kana-convert str ja-type-katakana))))
 
 (define (japan-util-zenkaku-selection pc)
   #f)
