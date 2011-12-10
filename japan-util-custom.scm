@@ -62,6 +62,18 @@
 	       (N_ "[japan-util] ascii clipboard")
 	       (N_ "long description will be here"))
 
+(define-custom 'japan-util-fullwidth-katakana-selection-key '("z")
+               '(japan-util)
+	       '(key)
+	       (N_ "[japan-util] fullwidth katakana selection")
+	       (N_ "long description will be here"))
+
+(define-custom 'japan-util-fullwidth-katakana-clipboard-key '("<IgnoreCase><Shift>z")
+               '(japan-util)
+	       '(key)
+	       (N_ "[japan-util] fullwidth katakana clipboard")
+	       (N_ "long description will be here"))
+
 (define-custom 'japan-util-halfwidth-katakana-selection-key '("x")
                '(japan-util)
 	       '(key)

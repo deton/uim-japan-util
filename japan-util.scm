@@ -128,6 +128,10 @@
         (japan-util-ascii-selection pc))
       ((japan-util-ascii-clipboard-key? key key-state)
         (japan-util-ascii-clipboard pc))
+      ((japan-util-fullwidth-katakana-selection-key? key key-state)
+        (japan-util-fullwidth-katakana-selection pc))
+      ((japan-util-fullwidth-katakana-clipboard-key? key key-state)
+        (japan-util-fullwidth-katakana-clipboard pc))
       ((japan-util-halfwidth-katakana-selection-key? key key-state)
         (japan-util-halfwidth-katakana-selection pc))
       ((japan-util-halfwidth-katakana-clipboard-key? key key-state)
@@ -144,7 +148,8 @@
     ((1) (list "->katakana" "k" ""))
     ((2) (list "->wide" "w" ""))
     ((3) (list "->ascii" "a" ""))
-    ((4) (list "->halfwidth-katakana" "x" ""))))
+    ((4) (list "->fullwidth-katakana" "z" ""))
+    ((5) (list "->halfwidth-katakana" "x" ""))))
 
 (define (japan-util-set-candidate-index-handler pc idx)
   (case idx
@@ -152,7 +157,8 @@
     ((1) (japan-util-katakana-selection pc))
     ((2) (japan-util-wide-selection pc))
     ((3) (japan-util-ascii-selection pc))
-    ((4) (japan-util-halfwidth-katakana-selection pc))))
+    ((4) (japan-util-fullwidth-katakana-selection pc))
+    ((5) (japan-util-halfwidth-katakana-selection pc))))
 
 (register-im
  'japan-util
@@ -178,7 +184,7 @@
  )
 
 (define (japan-util-show-help pc)
-  (im-activate-candidate-selector pc 5 5))
+  (im-activate-candidate-selector pc 6 6))
 
 (define (japan-util-acquire-text pc id)
   (and-let*
@@ -235,6 +241,18 @@
             e ; avoid to convert to "" (ex. "zk" in ja-rk-rule-basic)
             ch)))
       (string-to-list str))))
+
+(define (japan-util-fullwidth-katakana-selection pc)
+  (japan-util-convert pc 'selection
+    (lambda (str)
+      (string-list-concat
+        (japan-util-halfkana-to-fullkana-convert str)))))
+
+(define (japan-util-fullwidth-katakana-clipboard pc)
+  (japan-util-convert pc 'clipboard
+    (lambda (str)
+      (string-list-concat
+        (japan-util-halfkana-to-fullkana-convert str)))))
 
 (define (japan-util-wide-selection pc)
   (japan-util-convert pc 'selection
