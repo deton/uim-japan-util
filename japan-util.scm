@@ -251,83 +251,73 @@
 (define (japan-util-convert pc id convert)
   (let ((str (japan-util-acquire-text pc id)))
     (if (string? str)
-      (let ((converted-str (convert str)))
+      (let ((converted-str (string-list-concat (convert (string-to-list str)))))
         (if (not (string=? converted-str str))
           (im-commit pc converted-str))))))
 
 (define (japan-util-hiragana-selection pc)
   (japan-util-convert pc 'selection
-    (lambda (str)
-      (japan-util-kana-convert str ja-type-hiragana))))
+    (lambda (str-list)
+      (japan-util-kana-convert str-list ja-type-hiragana))))
 
 (define (japan-util-hiragana-clipboard pc)
   (japan-util-convert pc 'clipboard
-    (lambda (str)
-      (japan-util-kana-convert str ja-type-hiragana))))
+    (lambda (str-list)
+      (japan-util-kana-convert str-list ja-type-hiragana))))
 
 (define (japan-util-katakana-selection pc)
   (japan-util-convert pc 'selection
-    (lambda (str)
-      (japan-util-kana-convert str ja-type-katakana))))
+    (lambda (str-list)
+      (japan-util-kana-convert str-list ja-type-katakana))))
 
 (define (japan-util-katakana-clipboard pc)
   (japan-util-convert pc 'clipboard
-    (lambda (str)
-      (japan-util-kana-convert str ja-type-katakana))))
+    (lambda (str-list)
+      (japan-util-kana-convert str-list ja-type-katakana))))
 
 (define (japan-util-halfwidth-katakana-selection pc)
   (japan-util-convert pc 'selection
-    (lambda (str)
+    (lambda (str-list)
       ;; XXX: exclude ascii symbols in ja-rk-rule-basic
-      (japan-util-kana-convert str ja-type-halfkana))))
+      (japan-util-kana-convert str-list ja-type-halfkana))))
 
 (define (japan-util-halfwidth-katakana-clipboard pc)
   (japan-util-convert pc 'clipboard
-    (lambda (str)
+    (lambda (str-list)
       ;; XXX: exclude ascii symbols in ja-rk-rule-basic
-      (japan-util-kana-convert str ja-type-halfkana))))
+      (japan-util-kana-convert str-list ja-type-halfkana))))
 
-(define (japan-util-kana-convert str idx)
-  (string-list-concat
-    (map
-      (lambda (e)
-        (let ((ch (list-ref (ja-find-kana-list-from-rule ja-rk-rule e) idx)))
-          (if (string=? ch "")
-            e ; avoid to convert to "" (ex. "zk" in ja-rk-rule-basic)
-            ch)))
-      (string-to-list str))))
+(define (japan-util-kana-convert str-list idx)
+  (map
+    (lambda (e)
+      (let ((ch (list-ref (ja-find-kana-list-from-rule ja-rk-rule e) idx)))
+        (if (string=? ch "")
+          e ; avoid to convert to "" (ex. "zk" in ja-rk-rule-basic)
+          ch)))
+    str-list))
 
 (define (japan-util-fullwidth-katakana-selection pc)
-  (japan-util-convert pc 'selection
-    (lambda (str)
-      (string-list-concat
-        (japan-util-halfkana-to-fullkana-convert str)))))
+  (japan-util-convert pc 'selection japan-util-halfkana-to-fullkana-convert))
 
 (define (japan-util-fullwidth-katakana-clipboard pc)
-  (japan-util-convert pc 'clipboard
-    (lambda (str)
-      (string-list-concat
-        (japan-util-halfkana-to-fullkana-convert str)))))
+  (japan-util-convert pc 'clipboard japan-util-halfkana-to-fullkana-convert))
 
 (define (japan-util-wide-selection pc)
   (japan-util-convert pc 'selection
-    (lambda (str)
-      (ja-string-list-to-wide-alphabet
-        (japan-util-halfkana-to-fullkana-convert str)))))
+    (lambda (str-list)
+      (map ja-wide
+        (japan-util-halfkana-to-fullkana-convert str-list)))))
 
 (define (japan-util-wide-clipboard pc)
   (japan-util-convert pc 'clipboard
-    (lambda (str)
-      (ja-string-list-to-wide-alphabet
-        (japan-util-halfkana-to-fullkana-convert str)))))
+    (lambda (str-list)
+      (map ja-wide
+        (japan-util-halfkana-to-fullkana-convert str-list)))))
 
-(define (japan-util-halfkana-to-fullkana-convert str)
+(define (japan-util-halfkana-to-fullkana-convert str-list)
   ;; join all dakuten not only for halfkana
   (japan-util-join-dakuten
-    (map
-      (lambda (e)
-        (japan-util-halfkana-to-fullkana e))
-      (string-to-list str))))
+    (map japan-util-halfkana-to-fullkana str-list)))
 
 ;; revise string list contains Dakuten "¡«" or Han-Dakuten "¡¬"
 ;; (("¡«") ("¥¦")) -> ("¥ô")
@@ -359,22 +349,12 @@
           (append head (list c) (japan-util-join-dakuten (cdr tail))))))))
 
 (define (japan-util-ascii-selection pc)
-  (japan-util-convert pc 'selection
-    (lambda (str)
-      (japan-util-ascii-convert str))))
+  (japan-util-convert pc 'selection japan-util-string-list-to-ascii))
 
 (define (japan-util-ascii-clipboard pc)
-  (japan-util-convert pc 'clipboard
-    (lambda (str)
-      (japan-util-ascii-convert str))))
+  (japan-util-convert pc 'clipboard japan-util-string-list-to-ascii))
 
-(define (japan-util-ascii-convert str)
-  ;; convert wide alphabets in string list to ascii alphabets.
-  ;; (cf. ja-string-list-to-wide-alphabet in japanese.scm)
-  (define (ja-string-list-to-ascii char-list)
-    (map
-      (lambda (x)
-        (japan-util-wide-to-ascii x))
-      char-list))
-  (string-list-concat
-    (ja-string-list-to-ascii (string-to-list str))))
+;; convert wide alphabets in string list to ascii alphabets.
+;; (cf. ja-string-list-to-wide-alphabet in japanese.scm)
+(define (japan-util-string-list-to-ascii str-list)
+  (map japan-util-wide-to-ascii str-list))
