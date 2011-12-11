@@ -481,12 +481,12 @@
 
 (define (japan-util-halfkana-to-fullkana-convert str-list)
   ;; XXX: currently, join all dakuten not only for halfkana
-  (japan-util-join-dakuten
+  (japan-util-join-dakuten '()
     (map japan-util-halfkana-to-fullkana str-list)))
 
 ;; revise string list contains Dakuten "¡«" or Han-Dakuten "¡¬"
 ;; (("¡«") ("¥¦")) -> ("¥ô")
-(define (japan-util-join-dakuten lst)
+(define (japan-util-join-dakuten res-lst lst)
   (receive
     (head tail)
     (break
@@ -494,7 +494,7 @@
         (or (string=? x "¡«") (string=? x "¡¬")))
       lst)
     (if (null? tail)
-      head
+      (append res-lst head)
       (let*
         ((c (car tail))
          (next-c (and (pair? (cdr tail)) (cadr tail)))
@@ -510,5 +510,9 @@
               => cadr)
             (else #f))))
         (if joined-c
-          (append head (list joined-c) (japan-util-join-dakuten (cddr tail)))
-          (append head (list c) (japan-util-join-dakuten (cdr tail))))))))
+          (japan-util-join-dakuten
+            (append res-lst head (list joined-c))
+            (cddr tail))
+          (japan-util-join-dakuten
+            (append res-lst head (list c))
+            (cdr tail)))))))
