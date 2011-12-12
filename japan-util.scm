@@ -434,7 +434,9 @@
   (let ((str (japan-util-acquire-text pc id)))
     (if (string? str)
       (let ((converted-str (string-list-concat (convert (string-to-list str)))))
-        (if (not (string=? converted-str str))
+        (if (or (eq? id 'clipboard)
+                ;; for selection, avoid to unselect if there is no change.
+                (not (string=? converted-str str)))
           (im-commit pc converted-str))))))
 
 (define (japan-util-katakana-selection pc)
