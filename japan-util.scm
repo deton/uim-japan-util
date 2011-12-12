@@ -301,7 +301,12 @@
     ("¥Ø" "¥Ú")
     ("¥Û" "¥Ý")))
 
-(define japan-util-context-rec-spec context-rec-spec)
+(define japan-util-context-rec-spec
+  (append
+    context-rec-spec
+    (list
+      (list 'undo-len 0)
+      (list 'undo-str #f))))
 (define-record 'japan-util-context japan-util-context-rec-spec)
 (define japan-util-context-new-internal japan-util-context-new)
 
@@ -321,7 +326,9 @@
 (define (japan-util-key-press-handler pc key key-state)
   (im-deactivate-candidate-selector pc)
   (if (ichar-control? key)
-    (im-commit-raw pc)
+    (begin
+      (japan-util-context-set-undo-str! pc #f)
+      (im-commit-raw pc))
     (cond
       ((japan-util-show-help-key? key key-state)
         (japan-util-show-help pc))
@@ -353,7 +360,11 @@
         (japan-util-halfwidth-katakana-selection pc))
       ((japan-util-halfwidth-katakana-clipboard-key? key key-state)
         (japan-util-halfwidth-katakana-clipboard pc))
+      ((japan-util-undo-key? key key-state)
+        (japan-util-undo pc)
+        (japan-util-context-set-undo-str! pc #f))
       (else
+        (japan-util-context-set-undo-str! pc #f)
         (im-commit-raw pc)))))
 
 (define (japan-util-key-release-handler pc key state)
@@ -383,7 +394,9 @@
     ((5) (list "->fullwidth katakana"
           (get-label japan-util-fullwidth-katakana-selection-key) ""))
     ((6) (list "->halfwidth katakana"
-          (get-label japan-util-halfwidth-katakana-selection-key) ""))))
+          (get-label japan-util-halfwidth-katakana-selection-key) ""))
+    ((7) (list "undo last commit"
+          (get-label japan-util-undo-key) ""))))
 
 (define (japan-util-set-candidate-index-handler pc idx)
   (case idx
@@ -393,7 +406,8 @@
     ((3) (japan-util-ascii-selection pc))
     ((4) (japan-util-wide-selection pc))
     ((5) (japan-util-fullwidth-katakana-selection pc))
-    ((6) (japan-util-halfwidth-katakana-selection pc)))
+    ((6) (japan-util-halfwidth-katakana-selection pc))
+    ((7) (japan-util-undo pc)))
   (im-deactivate-candidate-selector pc))
 
 (register-im
@@ -420,8 +434,17 @@
  )
 
 (define (japan-util-show-help pc)
-  (im-activate-candidate-selector pc 7 7)
+  (im-activate-candidate-selector pc 8 8)
   (im-select-candidate pc 0)) ; to select candidate by click
+
+(define (japan-util-undo pc)
+  (let ((str (japan-util-context-undo-str pc))
+        (len (japan-util-context-undo-len pc)))
+    (if str
+      (begin
+        (if (> len 0)
+          (im-delete-text pc 'primary 'cursor len 0))
+        (im-commit pc str)))))
 
 (define (japan-util-acquire-text pc id)
   (and-let*
@@ -433,11 +456,15 @@
 (define (japan-util-convert pc id convert)
   (let ((str (japan-util-acquire-text pc id)))
     (if (string? str)
-      (let ((converted-str (string-list-concat (convert (string-to-list str)))))
+      (let* ((convstr-list (convert (string-to-list str)))
+             (convstr (string-list-concat convstr-list)))
         (if (or (eq? id 'clipboard)
                 ;; for selection, avoid to unselect if there is no change.
-                (not (string=? converted-str str)))
-          (im-commit pc converted-str))))))
+                (not (string=? convstr str)))
+          (begin
+            (japan-util-context-set-undo-len! pc (length convstr-list))
+            (japan-util-context-set-undo-str! pc str)
+            (im-commit pc convstr)))))))
 
 (define (japan-util-katakana-selection pc)
   (japan-util-convert pc 'selection

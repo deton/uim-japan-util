@@ -97,3 +97,10 @@
 	       '(key)
 	       (N_ "[japan-util] halfwidth katakana clipboard")
 	       (N_ "long description will be here"))
+
+(define-custom 'japan-util-undo-key '("u")
+               '(japan-util)
+	       '(key)
+	       (N_ "[japan-util] undo last commit")
+	       (N_ "long description will be here"))
+
