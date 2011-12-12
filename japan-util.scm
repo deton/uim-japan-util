@@ -444,7 +444,8 @@
       (begin
         (if (> len 0)
           (im-delete-text pc 'primary 'cursor len 0))
-        (im-commit pc str)))))
+        (if (not (string=? str ""))
+          (im-commit pc str))))))
 
 (define (japan-util-acquire-text pc id)
   (and-let*
@@ -463,7 +464,10 @@
                 (not (string=? convstr str)))
           (begin
             (japan-util-context-set-undo-len! pc (length convstr-list))
-            (japan-util-context-set-undo-str! pc str)
+            (japan-util-context-set-undo-str! pc
+              (if (eq? id 'clipboard)
+                ""
+                str))
             (im-commit pc convstr)))))))
 
 (define (japan-util-katakana-selection pc)
