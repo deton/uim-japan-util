@@ -8,7 +8,7 @@
                      japan-util-im-name-label
                      japan-util-im-short-desc)
 
-(define-custom 'japan-util-show-help-key '(" ")
+(define-custom 'japan-util-show-help-key '("<IgnoreShift>?")
                '(japan-util)
 	       '(key)
 	       (N_ "[japan-util] show help")
@@ -103,4 +103,3 @@
 	       '(key)
 	       (N_ "[japan-util] undo last commit")
 	       (N_ "long description will be here"))
-
