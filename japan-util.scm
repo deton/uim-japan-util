@@ -457,13 +457,15 @@
 (define (japan-util-convert pc id convert)
   (let ((str (japan-util-acquire-text pc id)))
     (if (string? str)
-      (let* ((convstr-list (convert (string-to-list str)))
-             (convstr (string-list-concat convstr-list)))
+      (let ((convstr (string-list-concat (convert (string-to-list str)))))
         (if (or (eq? id 'clipboard)
                 ;; for selection, avoid to unselect if there is no change.
                 (not (string=? convstr str)))
           (begin
-            (japan-util-context-set-undo-len! pc (length convstr-list))
+            ;; response string list from convert may include string like "¤¦¡«"
+            ;; that length is 2, so concat to string and re-split to list
+            (japan-util-context-set-undo-len! pc
+              (length (string-to-list convstr)))
             (japan-util-context-set-undo-str! pc
               (if (eq? id 'clipboard)
                 ""
