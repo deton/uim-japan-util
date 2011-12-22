@@ -8,6 +8,12 @@
                      japan-util-im-name-label
                      japan-util-im-short-desc)
 
+(define-custom 'japan-util-switch-default-im-after-commit #f
+               '(japan-util)
+               '(boolean)
+               (N_ "switch to default IM after commit")
+               (N_ "long description will be here."))
+
 (define-custom 'japan-util-show-help-key '("<IgnoreShift>?")
                '(japan-util)
 	       '(key)

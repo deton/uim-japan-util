@@ -472,7 +472,9 @@
               (if (eq? id 'clipboard)
                 ""
                 str))
-            (im-commit pc convstr)))))))
+            (im-commit pc convstr)))
+        (if japan-util-switch-default-im-after-commit
+          (im-switch-im pc default-im-name))))))
 
 (define (japan-util-katakana-selection pc)
   (japan-util-convert pc 'selection
