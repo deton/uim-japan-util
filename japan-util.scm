@@ -363,6 +363,8 @@
       ((japan-util-undo-key? key key-state)
         (japan-util-undo pc)
         (japan-util-context-set-undo-str! pc #f))
+      ((japan-util-switch-default-im-key? key key-state)
+        (im-switch-im pc default-im-name))
       (else
         (japan-util-context-set-undo-str! pc #f)
         (im-commit-raw pc)))))

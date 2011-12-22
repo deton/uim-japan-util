@@ -103,3 +103,9 @@
 	       '(key)
 	       (N_ "[japan-util] undo last commit")
 	       (N_ "long description will be here"))
+
+(define-custom 'japan-util-switch-default-im-key '("<IgnoreShift>~")
+               '(japan-util)
+	       '(key)
+	       (N_ "[japan-util] switch to default IM")
+	       (N_ "long description will be here"))
