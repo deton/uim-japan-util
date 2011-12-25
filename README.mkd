@@ -16,6 +16,8 @@ uim-japan-utilは、セレクションやクリップボード内のテキスト
 必要なもの
 ==========
 
+  * uim trunk r7271以降
+
 セレクションやクリップボード内のテキストを取得するため、
 uimのtext acquisition API(surrounding text API)を使うので、
 text acquisition APIに対応した以下のブリッジでのみ動作します。
@@ -76,6 +78,14 @@ uim-toolbarや「一時切り替えキー」を使って、japan-util IM
 上記のキーに加えて、以下の項目のカスタマイズが可能。
 
 * コミット後にデフォルトIMに切り替えるかどうか (デフォルト: #f)
+
+関連
+====
+
+* uim-external-filter https://github.com/deton/uim-external-filter
+* uim-fmt-ja https://github.com/deton/uim-fmt-ja
+* uim-wordcount https://github.com/deton/uim-wordcount
+* uim-external-editor https://github.com/deton/uim-external-editor
 
 TODO
 ====
